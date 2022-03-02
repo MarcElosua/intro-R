@@ -19,8 +19,8 @@ x
 
 y <- "hello"
 
-z <- TRUE
 z <- 2 > 3
+z <- TRUE
 
 ###################
 #### Functions ####
@@ -30,17 +30,19 @@ print(y)
 sum(2, 3)
 
 # Sometimes you might want to name your arguments
-seq(from = 1, to = 10, by = 1)
-
+seq(from = 1, to = 10, by = 2)
 ?seq
 
 # Objects can have different classes:
-class(x)
+class(5)
 class(1.5)
 class("hello")
+class(TRUE)
+
+is(5)
 
 # Objects can have different lengths
-x <- seq(10)
+x <- seq(1, 10, 0.5)
 x
 
 #################
@@ -54,13 +56,14 @@ x <- c("Where", "are", "my", "mice?")
 y <- c(1, 2, 3)
 
 # You can subset vectors using brackets
-y[2]
+y
+x[1:2]
 
 # While we're here, sequences:
-y <- 1:3
+y <- 1:10
 
 # You can add onto vectors
-y <- c(y, 7)
+y <- c(y, 7, 8, 9, y)
 y
 
 ##################
@@ -69,7 +72,11 @@ y
 
 # Create a vector called "my_values" with two values:
 # 1: the mean of numbers 10 through 23,
+mean(1:3)
 # 2: the square-root of 317
+sqrt(25)
+
+my_values <- c(mean(10:23), sqrt(317))
 
 #####################
 #### Data-frames ####
@@ -77,29 +84,39 @@ y
 # A dataframe is like a single sheet in a spreadsheet
 # We'll start using mtcars, which is a built in data-set
 mtcars
-
+head(mtcars)
+colnames(mtcars)
 # To reference a columm, you'll use the dollar sign
-mtcars$carb
+mtcars$am
+mtcars[, 4]
+mtcars[1 ,]
+mtcars[1, 4]
 
 ###################
 #### For loops ####
 ###################
 
-for (i in 1:5) {
-    print(i)
+for (j in 1:5) {
+    print(j + 1)
 }
 
 x <- c("Where", "are", "my", "mice?")
 for (i in x) {
-    print(i)
+    print(i, "!")
 }
 
 # If statements
 x <- 3
-if (x < 2) {
-    print("x is less than 2")
+if (x <= 2) {
+    print("x is less than or equal 2")
 } else {
     print("x is more than 2")
+}
+
+if (1 > 2) {
+    print("hello")
+} else {
+    print("bye bye")
 }
 
 ###################
@@ -115,22 +132,28 @@ foo(5)
 # What happens if we pass a number
 foo(3.5)
 
+
 # What happens if we pass a string
-foo("Hello")
+foo2 <- function(x) {
+    paste(x, "abc")
+}
+
+j <- foo2(x = "hello")
+j
 
 ####################
 #### Exercise-2 ####
 ####################
 
-## Write a function that does some basic math with two arguments
+## 1- Write a function that does some basic math with two arguments
 foo2 <- function(x, y){
     # Cheat skeleton here
 }
 
-## Write a function that takes in a vector, multiplies it by 2,
+## 2- Write a function that takes in a vector, multiplies it by 2,
 ## and then returns the first 2 arguments
 
-## Write a function that:
+## 3- Write a function that:
 # multiples the input by 3 if it's less than 5,
 # and divides the input by 2 if it's >= 5
 
