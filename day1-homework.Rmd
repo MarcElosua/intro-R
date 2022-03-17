@@ -47,14 +47,30 @@ if you get stuck*
 is `100`, and every following element is double the square-root of the previous 
 one.
 ```{r}
+n <- 100
+vec <- c()
 
+for (i in 1:10) {
+    
+    if (i == 1) {
+        vec <- c(vec, n)
+    } else {
+        vec <- c(vec, 2 * sqrt(vec[i - 1]))
+    }
+   
+}
+vec
 ```
 
 7. Write an `if / else` statement that prints "Yay" if some value `x` is 
 greater than 10 and "Awesome" otherwise. Try setting `x` to 
 different values and try running it.
 ```{r}
+x <- 5
 
+if () {
+    
+}
 ```
 
 ## Part 3: Functions

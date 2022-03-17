@@ -9,11 +9,12 @@
 # Resource - https://r4ds.had.co.nz/
 
 # install all the packages
-# install.packages("tidyverse")
-# install.packages("palmerpenguins")
+install.packages("tidyverse")
+install.packages("palmerpenguins")
+
 library(tidyverse)
 library(palmerpenguins)
-https://allisonhorst.github.io/palmerpenguins/
+# https://allisonhorst.github.io/palmerpenguins/
 data(package = 'palmerpenguins')
 
 ########################
@@ -33,14 +34,14 @@ summary(penguins$bill_length_mm)
 
 ### mutate(): Add/create new variables ###
 penguins <- mutate(penguins, 
-    bill_length_cm = bill_length_mm / 100,
     body_mass_kg = body_mass_g / 100,
     flipper_length_mm_log10 = log10(flipper_length_mm),
+    bill_length_cm = bill_length_mm / 100,
     year = as.character(year))
 
 ### rename(): Rename columns. ###
 # Lets make the dataset portuguese friendly
-pinguins <- rename(penguins, 
+pinguins2 <- rename(penguins, 
     especies = species,
     ilha = island,
     ano = year)
@@ -48,13 +49,14 @@ pinguins <- rename(penguins,
 ### filter(): Pick rows (observations/samples) based on their values ###
 
 # Only select Adelie penguins
-filter(penguins, species == "Gentoo")
+filter(penguins, species == "Gentoo" | bill_length_mm > 45)
 
 # Only select Adelie penguins from Torgersen Island
-filter(penguins, species == "Chinstrap" & island == "Dream")
-
+df <- filter(penguins, species == "Chinstrap" & island == "Dream")
+df
 # Can we remove those penguins from which we don't have any data?
 head(penguins)
+! is.na(penguins$bill_length_mm)
 penguins2 <- filter(penguins, ! is.na(bill_length_mm))
 
 penguins2 <- filter(penguins, ! is.na(bill_length_mm) & ! is.na(sex))
@@ -63,12 +65,13 @@ penguins2 <- filter(penguins, ! is.na(bill_length_mm) & ! is.na(sex))
 
 # Select all columns except flipper_length_mm_log10
 
-penguins <- select(penguins, -flipper_length_mm_log10)
+penguins <- select(penguins, -c(flipper_length_mm_log10))
 
 # Select columns of interest
+pull(penguins, bill_length_mm)
 penguins3 <- select(penguins,
     c(species, island, bill_length_mm, bill_depth_mm))
-
+penguins3
 ### arrange(): Reorder the rows. ###
 
 # sort data  by a value in a column
@@ -83,7 +86,7 @@ arrange(penguins2, desc(bill_length_mm))
 arrange(penguins2, island)
 
 # Or by 2 variables at the same time
-arrange(penguins2, island, bill_length_mm)
+arrange(penguins2, island, bill_length_mm) %>% data.frame()
 
 ### summarise(): Compute statistical summaries (e.g., computing the mean or the sum) ###
 summarise(penguins2,
@@ -100,10 +103,11 @@ summarise(penguins2,
 # whatever they do.
 
 # Pseudocode
-wakeup(marc)
-eat_breakfast(marc)
-brush_teeth(marc)
-take_subway(mark)
+marc <- "zzz"
+marc <- wakeup(marc)
+marc <- eat_breakfast(marc)
+marc <- brush_teeth(marc)
+marc <- take_subway(marc)
 
 marc %>%
     wakeup() %>%
@@ -122,6 +126,7 @@ penguins4 <- penguins %>%
     select(-body_mass_g) %>%
     # Filter and keep those roes that don't have NAs
     filter(! is.na(bill_length_mm) & ! is.na(sex)) %>%
+    tidyr::drop_na() %>%
     # Arrange by island and weight
     arrange(island, desc(body_mass_kg))
 
@@ -129,7 +134,7 @@ penguins4
 
 # Lastly we can summarize statistics by groups
 penguins4 %>%
-    group_by(species) %>%
+    group_by(species, island) %>%
     summarise(
         mean_body_mass_kg = mean(body_mass_kg),
         sd_body_mass_kg = sd(body_mass_kg),
@@ -149,29 +154,37 @@ ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
 ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
     geom_point()
 
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+    geom_point(size = 5)
+
 # Shape by the island
 ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species, shape = island)) +
-    geom_point(size = 5) +
+    geom_point() +
     theme_light()
 
 # Prettify adding a theme
 ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
-    geom_point() +
-    theme_classic()
+    geom_point(alpha = 0.5) +
+    theme_classic() +
+    scale_color_manual(
+        values = c("cyan", "pink", "black"),
+        breaks = c("Gentoo", "Adelie", "Chinstrap")
+        )
 
 ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
     geom_point() +
     theme_light()
 
 #### Boxplot
-ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
-    geom_boxplot() +
+ggplot(penguins, aes(x = species, y = body_mass_g, fill = island, color = island)) +
+    geom_boxplot(alpha = 0.7) +
     theme_classic()
 
 #### Boxplot + Violin plot
 ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
-    geom_violin() +
-    geom_boxplot(alpha = 0.5) +
+    geom_boxplot(alpha = 0.5, width = 0.1) +
+    geom_violin(alpha = 0.1) +
+    geom_jitter() +
     theme_classic()
 
 ## Pipeing into a ggplot
@@ -191,3 +204,5 @@ penguins %>%
     facet_wrap(facets = "year") +
     theme_classic()
 
+xlsx::read.xlsx("data.xlsx", sheetName = "sheet1")
+?xlsx::read.xlsx

@@ -1,0 +1,181 @@
+---
+title: "Flow data analysis tutorial"
+author: "Marc Elosua-Bayés"
+date: "3/15/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+In this Rmd we are going to analyze Flow data from the experiment...
+
+## Libraries
+```{r libraries}
+library(tidyverse)
+library(xlsx)
+install.packages("xlsx")
+
+```
+
+## Load data
+
+```{r}
+df1 <- read.xlsx(file = "data-flow/Data- R class.xlsx", sheetIndex = 1)
+df2 <- read.xlsx(file = "data-flow/Data- R class.xlsx", sheetIndex = 2)
+
+head(df1)
+head(df2)
+```
+
+## Analysis
+Lavel dataframes by origin
+```{r}
+df1$origin <- "sheet1"
+df2$origin <- "sheet2"
+```
+
+Stack dataframes
+```{r}
+colnames(df1) == colnames(df2)
+df3 <- bind_rows(df1, df2)
+```
+
+summary statistics
+```{r}
+std_mean <- function(x) sd(x) / sqrt(length(x))
+
+df_stats <- df3 %>%
+    group_by(Sample.) %>%
+    summarise(
+        mean_dead_cd45 = mean(Dead.CD45....Freq..of.Parent),
+        st_err_dead_cd45 = std_mean(Dead.CD45....Freq..of.Parent)
+    )
+```
+
+## Including Plots
+```{r}
+ggplot() +
+    geom_col(
+        data = df_stats,
+        aes(x = Sample., y = mean_dead_cd45),
+        alpha = 0.7) +
+    geom_errorbar(
+        data = df_stats,
+        aes(x = Sample.,
+            ymin = mean_dead_cd45 - st_err_dead_cd45,
+            ymax = mean_dead_cd45 + st_err_dead_cd45)) +
+    geom_point(data = df3,
+        aes(x = Sample.,
+            y = Dead.CD45....Freq..of.Parent,
+            color = origin)) +
+    labs(title = "Flow colplot", x = "Samples", y = "Proportion (%)") +
+    theme_classic() +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, size = 35))
+```
+
+All the cell types together
+```{r}
+df3_long <- df3 %>%
+    pivot_longer(
+        cols = c("Dead.CD45....Freq..of.Parent", "Live.cd45....Freq..of.Parent",
+            "Dead.CD45....Freq..of.Parent.1", "Live.CD45....Freq..of.Parent" ),
+        names_to = "cell_type",
+        values_to = "Proportion")
+```
+
+Lets calculate summary statistics
+```{r}
+std_mean <- function(x) sd(x) / sqrt(length(x))
+
+df_stats2 <- df3_long %>%
+    group_by(Sample., cell_type) %>%
+    summarise(
+        mean_ct = mean(Proportion),
+        st_err_ct = std_mean(Proportion)
+    )
+```
+
+Lastly plot the proportions in facets
+```{r}
+ggplot(df3_long) +
+    geom_col(
+        data = df_stats2,
+        aes(x = Sample., y = mean_ct, fill = cell_type),
+        alpha = 0.7,
+        position = "dodge") +
+    geom_errorbar(
+        data = df_stats2,
+        aes(x = Sample.,
+            ymin = mean_ct - st_err_ct,
+            ymax = mean_ct + st_err_ct,
+            color = cell_type),
+        position = position_dodge(width = 0.9)) +
+    geom_point(data = df3_long,
+        aes(x = Sample.,
+            y = Proportion,
+            color = origin)) +
+    facet_wrap(facets = "cell_type") +
+    labs(title = "Flow colplot", x = "Samples", y = "Proportion (%)") +
+    theme_classic() +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, size = 35),
+        # Change the color of the facet strip
+        strip.background.x = element_rect(color = "cyan", fill = "yellow"))
+```
+
+Look at all the cell types side by side
+```{r fig.width=15, fig.height=8}
+ggplot() +
+    geom_col(
+        data = df_stats2,
+        aes(x = Sample.,
+            y = mean_ct,
+            fill = cell_type,
+            group = cell_type),
+        alpha = 0.7,
+        position = position_dodge()) +
+    geom_errorbar(
+        data = df_stats2,
+        aes(x = Sample.,
+            ymin = mean_ct - st_err_ct,
+            ymax = mean_ct + st_err_ct
+            # Uncomment the line below if you want the error bar to be colored
+            # color = cell_type
+        ),
+        color = "black",
+        # inherits from 
+        position = position_dodge2(width = 0.9)) +
+    geom_jitter(data = df3_long,
+        aes(x = Sample.,
+            y = Proportion,
+            color = origin,
+            group = cell_type),
+        # Set the size of the points
+        size = 3,
+        # Set the amount of side jitter
+        position = position_jitterdodge(jitter.width = 0.1)
+    ) +
+    labs(title = "Flow colplot", x = "Samples", y = "Proportion (%)") +
+    # Set the color of the points
+    scale_color_manual(values = c("purple", "darkgreen")) +
+    # Set the color of the bars
+    scale_fill_manual(values = c("#fc4032", "#32fccd", "#7232fc", "#fc32de")) +
+    theme_classic() +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, size = 35),
+        # Change the color of the facet strip
+        strip.background.x = element_rect(color = "cyan", fill = "yellow"))
+```
+
+## Session Info
+```{r}
+sessionInfo()
+```
+
