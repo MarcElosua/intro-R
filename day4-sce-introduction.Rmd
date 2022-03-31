@@ -81,11 +81,12 @@ sce[, 1:1000]
 # Select specific genes
 sce[1:1000, ]
 
-gene_ls <- c("CD3D", "CD4", "CD8A", "CCR7", "CLEC9A", "IRF8")
+gene_ls <- c("CD3D", "CD4", "CD8", "CCR7", "CLEC9A", "IRF8")
 sce[gene_ls, ]
 
 # Subset for both
-sce[1:1000, 1:1000]
+sce_sub <- sce[1:1000, 1:1000]
+sce_sub
 ```
 
 ## QC
@@ -100,8 +101,8 @@ The first step is to compute basic QC metrics -
 * subsets_ribo_pct_percent: ribosomal %
 
 ```{r}
-is.mito <- str_detect(rownames(sce), "MT")
-is.ribo <- str_detect(rownames(sce), "RPS|RPL")
+is.mito <- str_detect(rownames(sce), "^MT")
+is.ribo <- str_detect(rownames(sce), "^RPS|^RPL]")
 
 df <- perCellQCMetrics(
     sce,
@@ -114,17 +115,18 @@ colData(sce) <- cbind(colData(sce), df)
 
 Lets visualize QC markers with violin plots data 
 ```{r fig.width=12, fig.height=12}
-lapply(c("sum", "detected", "subsets_mito_pct_percent", "subsets_ribo_pct_percent"), function(i) {
-    plotColData(
-        sce,
-        y = i,
-        colour_by = "Sample") +
-        scale_y_log10() +
-        ggtitle(i)
-    }) %>% wrap_plots(.)
+lapply(c("sum", "detected", "subsets_mito_pct_percent", "subsets_ribo_pct_percent"),
+    function(i) {
+        plotColData(
+            sce,
+            y = i,
+            colour_by = "Sample") +
+            # scale_y_log10() +
+            ggtitle(i)
+        }) %>% wrap_plots()
 ```
 
-Now we can look at how these metric covary together
+Now we can look at how these metric co-vary together
 
 When we plot the number of genes detected per cell as a function of number of UMIswe should see a linear relation in the log scale.
 ```{r}
@@ -133,12 +135,12 @@ When we plot the number of genes detected per cell as a function of number of UM
     x = "sum",
     y = "detected",
     colour_by = "subsets_mito_pct_percent") +
-    scale_y_log10() +
-    scale_x_log10() +
+    # scale_y_log10() +
+    # scale_x_log10() +
     ggtitle("nUMI vs nGenes"))
 ```
 
-Furthermore we can also check if there are cells that have low number of genes detected paired with high mitochondiral % indicating the cell has lysed during the process. Cells that are found at the top left corner have low number of genes with high Mito % so we can consider removing them... *UNLESS* there is a specific population that we expect to have these characteristics!
+Furthermore we can also check if there are cells that have low number of genes detected paired with high mitochondrial % indicating the cell has lysed during the process. Cells that are found at the top left corner have low number of genes with high Mito % so we can consider removing them... *UNLESS* there is a specific population that we expect to have these characteristics!
 ```{r}
 (p2 <- plotColData(
     sce,
@@ -240,7 +242,9 @@ pca_weights <- attr(pca, "rotation")
 # Look at the genes corresponding to the top PC
 sort(pca_weights[, "PC1"], decreasing = TRUE)[1:10]
 sort(pca_weights[, "PC2"], decreasing = TRUE)[1:10]
-sort(pca_weights[, "PC3"], decreasing = TRUE)[1:10]
+sort(pca_weights[, "PC3"], decreasing = TRUE)[1:20]
+sort(pca_weights[, "PC4"], decreasing = TRUE)[1:10]
+sort(pca_weights[, "PC5"], decreasing = TRUE)[1:10]
 ```
 
 Run UMAP on the using the first 20 PC
